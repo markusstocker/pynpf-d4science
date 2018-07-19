@@ -1,3 +1,4 @@
+import requests
 from hashlib import md5
 from pytz import timezone
 from datetime import datetime
@@ -11,7 +12,8 @@ configuration = {
         'countryCode': 'FI',
         'locationMap': URIRef('http://www.geonames.org/656888/hyytiaelae.html'),
         'latitude': '61.84562',
-        'longitude': '24.29077'
+        'longitude': '24.29077',
+        'package_id': 'new_particle_formation_events_at_hyytiaelae'
     },
     'Puijo': {
         'identifier': URIRef('http://sws.geonames.org/640784/'),
@@ -145,4 +147,17 @@ g.add((beginning_uri, Time['inXSDDateTime'], Literal(beginning_isoformat, dataty
 g.add((end_uri, RDF.type, Time['Instant']))
 g.add((end_uri, Time['inXSDDateTime'], Literal(end_isoformat, datatype=XSD.dateTime)))
 
-print(g.serialize(format='turtle').decode('utf-8'))
+headers = {'Accept':'application/json',
+           'gcube-token':'078b179e-3a27-4543-9f5c-8e8dcd693036-843339462'}
+
+res = requests.post('http://catalogue-ws.d4science.org/catalogue-ws/rest/api/resources/create/',
+                    data={'package_id':configuration[place]['package_id'],
+                          'name':'{}-{}'.format(place, day),
+                          'mimetype':'text/plain'},
+                    files={'upload': ('hyytiaelae-{}.txt'.format(day),'hello world')},
+                    headers=headers)
+
+#print(res.request.body)
+#print(res.content)
+
+
