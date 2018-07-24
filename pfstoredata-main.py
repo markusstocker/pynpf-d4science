@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import sys
 import requests
 from hashlib import md5
 from pytz import timezone
@@ -52,11 +53,12 @@ configuration = {
     }
 }
 
-day = '2013-04-04'
-place = 'Hyytiaelae'
-beginning = '11:00'
-end = '12:00'
-classification = 'Class Ia'
+day = sys.argv[1]
+place = sys.argv[2]
+beginning = sys.argv[3]
+end = sys.argv[4]
+classification = sys.argv[5]
+
 point = 'POINT ({} {})'.format(configuration[place]['longitude'], configuration[place]['latitude'])
 
 ns = 'http://avaa.tdata.fi/web/smart/smear/'

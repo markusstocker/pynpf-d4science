@@ -35,8 +35,8 @@ configuration = {
     }
 }
 
-day = '2013-04-04'
-place = 'Hyytiaelae'
+day = sys.argv[1]
+place = sys.argv[2]
 
 time_from = timezone('Europe/Helsinki').localize(datetime.strptime(day, '%Y-%m-%d'))
 time_to = time_from + timedelta(days=1)
