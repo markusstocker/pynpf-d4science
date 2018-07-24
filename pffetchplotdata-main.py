@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 configuration = {
-    'Hyytiälä': {
+    'Hyytiaelae': {
         'smear_table': 'HYY_DMPS',
         'smear_variables': 'd316e1,d355e1,d398e1,d447e1,d501e1,d562e1,d631e1,d708e1,d794e1,'\
                            'd891e1,d100e2,d112e2,d126e2,d141e2,d158e2,d178e2,d200e2,d224e2,'\
@@ -25,7 +25,7 @@ configuration = {
                            'ch33,ch34,ch35,ch36,ch37,ch38,ch39,ch40',
         'num_var_less_than_10nm': 10
     },
-    'Värriö': {
+    'Vaerrioe': {
         'smear_table': 'VAR_DMPS',
         'smear_variables': 'd316e1,d355e1,d398e1,d447e1,d501e1,d562e1,d631e1,d708e1,d794e1,'\
                            'd891e1,d100e2,d112e2,d126e2,d141e2,d158e2,d178e2,d200e2,d224e2,'\
@@ -36,7 +36,7 @@ configuration = {
 }
 
 day = '2013-04-04'
-place = 'Hyytiälä'
+place = 'Hyytiaelae'
 
 time_from = timezone('Europe/Helsinki').localize(datetime.strptime(day, '%Y-%m-%d'))
 time_to = time_from + timedelta(days=1)

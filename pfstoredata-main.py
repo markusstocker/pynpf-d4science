@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import requests
 from hashlib import md5
 from pytz import timezone
@@ -6,9 +7,10 @@ from rdflib import Graph, URIRef, Literal
 from rdflib.namespace import RDF, RDFS, XSD
 
 configuration = {
-    'Hyytiälä': {
+    'Hyytiaelae': {
         'identifier': URIRef('http://sws.geonames.org/656888/'),
         'name': 'Hyytiälä',
+        'encoded_name':'hyytiaelae',
         'countryCode': 'FI',
         'locationMap': URIRef('http://www.geonames.org/656888/hyytiaelae.html'),
         'latitude': '61.84562',
@@ -18,14 +20,16 @@ configuration = {
     'Puijo': {
         'identifier': URIRef('http://sws.geonames.org/640784/'),
         'name': 'Puijo',
+        'encoded_name': 'puijo',
         'countryCode': 'FI',
         'locationMap': URIRef('http://www.geonames.org/640784/puijo.html'),
         'latitude': '62.91667',
         'longitude': '27.65'
     },
-    'Värriö': {
+    'Vaerrioe': {
         'identifier': URIRef('http://sws.geonames.org/828747/'),
         'name': 'Värriö',
+        'encoded_name': 'vaerrioe',
         'countryCode': 'FI',
         'locationMap': URIRef('http://www.geonames.org/828747/vaerrioe.html'),
         'latitude': '67.46535',
@@ -49,7 +53,7 @@ configuration = {
 }
 
 day = '2013-04-04'
-place = 'Hyytiälä'
+place = 'Hyytiaelae'
 beginning = '11:00'
 end = '12:00'
 classification = 'Class Ia'
@@ -147,17 +151,41 @@ g.add((beginning_uri, Time['inXSDDateTime'], Literal(beginning_isoformat, dataty
 g.add((end_uri, RDF.type, Time['Instant']))
 g.add((end_uri, Time['inXSDDateTime'], Literal(end_isoformat, datatype=XSD.dateTime)))
 
-headers = {'Accept':'application/json',
+headers = {'Content-Type':'application/x-turtle',
+           'Accept':'application/xml',
+           'gcube-token':'078b179e-3a27-4543-9f5c-8e8dcd693036-843339462'}
+
+res = requests.post('https://workspace-repository.d4science.org/home-library-webapp/rest/Upload',
+                    params={'name':'{}-{}.ttl'.format(configuration[place]['encoded_name'], day),
+                            'description':'New particle formation event description for {} on {}'.format(place, day),
+                            'parentPath':'/Home/markus.stocker/Workspace/NewParticleFormationEventsDescriptions',
+                            'mimetype':'application/x-turtle'},
+                    data=g.serialize(format='turtle'),
+                    headers=headers)
+
+path = res.text
+
+path = path.replace('<string>','')
+path = path.replace('</string>','')
+
+res = requests.get('https://workspace-repository.d4science.org/home-library-webapp/rest/GetPublicLink',
+                    params={'absPath':'/Home/markus.stocker{}'.format(path),
+                            'secureUrl':'true'},
+                    headers=headers)
+
+path = res.text
+
+path = path.replace('<string>','')
+path = path.replace('</string>','')
+
+headers = {'Content-Type':'application/json',
+           'Accept':'application/json',
            'gcube-token':'078b179e-3a27-4543-9f5c-8e8dcd693036-843339462'}
 
 res = requests.post('http://catalogue-ws.d4science.org/catalogue-ws/rest/api/resources/create/',
-                    data={'package_id':configuration[place]['package_id'],
-                          'name':'{}-{}'.format(place, day),
-                          'mimetype':'text/plain'},
-                    files={'upload': ('hyytiaelae-{}.txt'.format(day),'hello world')},
+                    json={'package_id':configuration[place]['package_id'],
+                          'name':'{}-{}'.format(configuration[place]['encoded_name'], day),
+                          'url':path,
+                          'format':'Turtle',
+                          'mimetype':'application/x-turtle'},
                     headers=headers)
-
-#print(res.request.body)
-#print(res.content)
-
-
