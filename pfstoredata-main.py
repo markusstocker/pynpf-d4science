@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import sys
 import requests
+import csv
 from hashlib import md5
 from pytz import timezone
 from datetime import datetime
@@ -58,6 +59,12 @@ place = sys.argv[2]
 beginning = sys.argv[3]
 end = sys.argv[4]
 classification = sys.argv[5]
+
+globalvariables = None
+
+with open('globalvariables.csv', 'r') as file:
+    reader = csv.reader(file, delimiter=',')
+    globalvariables = {rows[0]: rows[1] for rows in reader}
 
 point = 'POINT ({} {})'.format(configuration[place]['longitude'], configuration[place]['latitude'])
 
@@ -155,12 +162,12 @@ g.add((end_uri, Time['inXSDDateTime'], Literal(end_isoformat, datatype=XSD.dateT
 
 headers = {'Content-Type':'application/x-turtle',
            'Accept':'application/xml',
-           'gcube-token':'078b179e-3a27-4543-9f5c-8e8dcd693036-843339462'}
+           'gcube-token':globalvariables['gcube_token']}
 
 res = requests.post('https://workspace-repository.d4science.org/home-library-webapp/rest/Upload',
                     params={'name':'{}-{}.ttl'.format(configuration[place]['encoded_name'], day),
                             'description':'New particle formation event description for {} on {}'.format(place, day),
-                            'parentPath':'/Home/markus.stocker/Workspace/NewParticleFormationEventsDescriptions',
+                            'parentPath':'/Home/{}/Workspace/NewParticleFormationEventsDescriptions'.format(globalvariables['gcube_username']),
                             'mimetype':'application/x-turtle'},
                     data=g.serialize(format='turtle'),
                     headers=headers)
@@ -171,7 +178,7 @@ path = path.replace('<string>','')
 path = path.replace('</string>','')
 
 res = requests.get('https://workspace-repository.d4science.org/home-library-webapp/rest/GetPublicLink',
-                    params={'absPath':'/Home/markus.stocker{}'.format(path),
+                    params={'absPath':'/Home/{}{}'.format(globalvariables['gcube_username'],path),
                             'secureUrl':'true'},
                     headers=headers)
 
@@ -182,7 +189,7 @@ path = path.replace('</string>','')
 
 headers = {'Content-Type':'application/json',
            'Accept':'application/json',
-           'gcube-token':'078b179e-3a27-4543-9f5c-8e8dcd693036-843339462'}
+           'gcube-token':globalvariables['gcube_token']}
 
 res = requests.post('http://catalogue-ws.d4science.org/catalogue-ws/rest/api/resources/create/',
                     json={'package_id':configuration[place]['package_id'],
