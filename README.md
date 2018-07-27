@@ -2,7 +2,7 @@
 
 * Create a D4Science account [here](https://services.d4science.org/)
 * Verify your email, sign in and follow the instructions
-* In [explore virtual research environments](https://services.d4science.org/explore) search the "ParticleFormation" VRE and Request Access.
+* In [explore virtual research environments](https://services.d4science.org/explore) search the "ParticleFormation" VRE and Request Access
 * Sign out (yes, it is necessary) and wait until the VRE administrator grants you access; you will be informed by email
 * Follow the link in the email to the "[ParticleFormation](https://services.d4science.org/group/particleformation)" VRE; you will need to sign in (if you did not sign out earlier you may get an access denied error message)
 * Select [Jupyter @ EGI](https://services.d4science.org/group/particleformation/jupyter-egi)
@@ -32,7 +32,7 @@ gcube_token = 'MY GCUBE TOKEN HERE'
 
 # Notes
 
-* Tested on Chrome, should work on Firefox. IE 11 and Brave have issues with Jupyter.
+* Tested on Chrome, should work on Firefox; IE 11 and Brave have issues with Jupyter
 * The system makes heavy use of caching: you may want to run it in a private (incognito) browser window
 
 
