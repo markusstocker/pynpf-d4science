@@ -34,6 +34,7 @@ gcube_token = 'MY GCUBE TOKEN HERE'
 
 * Tested on Chrome, should work on Firefox; IE 11 and Brave have issues with Jupyter
 * The system makes heavy use of caching: you may want to run it in a private (incognito) browser window
+* Users need to be authorized to upload resource to the catalogue
 
 
 
