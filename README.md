@@ -8,16 +8,22 @@
 * Select [Jupyter @ EGI](https://services.d4science.org/group/particleformation/jupyter-egi)
 * In JupyterLab, select Terminal execute the following
 
-  git clone https://github.com/markusstocker/pynpf-d4science.git
+```
+git clone https://github.com/markusstocker/pynpf-d4science.git
+```
 
 * Copy the `classification.ipynb` to the `persistent` folder as follows
 
-  cp pynpf-d4science/classification.ipynb persistent
+```
+cp pynpf-d4science/classification.ipynb persistent
+```
 
 * On the left panel (`Files`) select the `persistent` folder and open `classification.ipynb`
 * Setup the notebook by adding your `gcube_token`
 
-  gcube_token = 'MY GCUBE TOKEN HERE'
+```
+gcube_token = 'MY GCUBE TOKEN HERE'
+```
 
 * Run the two code blocks (SHIFT+ENTER) to complete setting up the notebook
 * Now you can start analysing new particle formation events
