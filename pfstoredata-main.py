@@ -60,6 +60,12 @@ beginning = sys.argv[3]
 end = sys.argv[4]
 classification = sys.argv[5]
 
+#day = '2013-04-04'
+#place = 'Hyytiaelae'
+#beginning = '12:00'
+#end = '13:30'
+#classification = 'Class Ia'
+
 globalvariables = None
 
 with open('globalvariables.csv', 'r') as file:
@@ -164,10 +170,26 @@ headers = {'Content-Type':'application/x-turtle',
            'Accept':'application/xml',
            'gcube-token':globalvariables['gcube_token']}
 
+# First needs to check if the folder exists
+folder = 'EventDescriptions'
+
+res = requests.get('https://workspace-repository.d4science.org/home-library-webapp/rest/List',
+                   params={'absPath':'/Home/{}/{}'.format(globalvariables['gcube_username'], folder),
+                           'secureUrl':'true'},
+                   headers=headers)
+
+if 'ItemNotFoundException' in res.text:
+    res = requests.post('https://workspace-repository.d4science.org/home-library-webapp/rest/CreateFolder',
+                        params={'name': folder,
+                                'description': 'Contains event descriptions',
+                                'parentPath': '/Home/{}/Workspace'.format(globalvariables['gcube_username'])},
+                        headers=headers)
+
+
 res = requests.post('https://workspace-repository.d4science.org/home-library-webapp/rest/Upload',
                     params={'name':'{}-{}.ttl'.format(configuration[place]['encoded_name'], day),
                             'description':'New particle formation event description for {} on {}'.format(place, day),
-                            'parentPath':'/Home/{}/Workspace/NewParticleFormationEventsDescriptions'.format(globalvariables['gcube_username']),
+                            'parentPath':'/Home/{}/Workspace/{}'.format(globalvariables['gcube_username'], folder),
                             'mimetype':'application/x-turtle'},
                     data=g.serialize(format='turtle'),
                     headers=headers)
@@ -178,9 +200,9 @@ path = path.replace('<string>','')
 path = path.replace('</string>','')
 
 res = requests.get('https://workspace-repository.d4science.org/home-library-webapp/rest/GetPublicLink',
-                    params={'absPath':'/Home/{}{}'.format(globalvariables['gcube_username'],path),
-                            'secureUrl':'true'},
-                    headers=headers)
+                   params={'absPath':'/Home/{}{}'.format(globalvariables['gcube_username'], path),
+                           'secureUrl':'true'},
+                   headers=headers)
 
 path = res.text
 
