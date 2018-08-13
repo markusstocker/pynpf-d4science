@@ -26,19 +26,19 @@ for resource in json['result']['resources']:
     g.parse(data=requests.get(resource['url']).content.decode('utf-8'), format="turtle")
 
 q = """
-SELECT ?beginning ?end ?classification ?place ?latitude ?longitude
+SELECT ?beginning ?end ?classification ?place ?latitude ?longitude ?uri
 WHERE {
-?event rdf:type lode:Event .
-?event lode:atTime ?atTime .
+?uri rdf:type lode:Event .
+?uri lode:atTime ?atTime .
 ?atTime time:hasBeginning ?hasBeginning .
 ?hasBeginning time:inXSDDateTime ?beginning .
 ?atTime time:hasEnd ?hasEnd .
 ?hasEnd time:inXSDDateTime ?end .
-?event lode:atPlace ?atPlace .
+?uri lode:atPlace ?atPlace .
 ?atPlace gn:name ?place .
 ?atPlace wgs84:lat ?latitude .
 ?atPlace wgs84:long ?longitude .
-?event smear:hasClassification ?hasClassification .
+?uri smear:hasClassification ?hasClassification .
 ?hasClassification rdfs:label ?classification .
 }
 ORDER BY ASC(?beginning)
