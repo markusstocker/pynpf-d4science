@@ -2,6 +2,7 @@
 import sys
 import requests
 import csv
+from dateutil import tz
 from hashlib import md5
 from pytz import timezone
 from datetime import datetime
@@ -17,7 +18,8 @@ configuration = {
         'locationMap': URIRef('http://www.geonames.org/656888/hyytiaelae.html'),
         'latitude': '61.84562',
         'longitude': '24.29077',
-        'package_id': 'new_particle_formation_events_at_hyytiaelae'
+        'package_id_descriptions': 'npfe_descriptions_at_hyytiaelae',
+        'package_id_plots': 'npfe_plots_at_hyytiaelae'
     },
     'Puijo': {
         'identifier': URIRef('http://sws.geonames.org/640784/'),
@@ -59,12 +61,14 @@ place = sys.argv[2]
 beginning = sys.argv[3]
 end = sys.argv[4]
 classification = sys.argv[5]
+image = sys.argv[6]
 
 #day = '2013-04-04'
 #place = 'Hyytiaelae'
 #beginning = '12:00'
 #end = '13:30'
 #classification = 'Class Ia'
+#image = 'http://data.d4science.org/dFc2eXkwaXBZTGRCSlRFNlg1YmNWbXhxRW9xY09MMU1HbWJQNStIS0N6Yz0-VLT'
 
 globalvariables = None
 
@@ -75,12 +79,13 @@ with open('globalvariables.csv', 'r') as file:
 point = 'POINT ({} {})'.format(configuration[place]['longitude'], configuration[place]['latitude'])
 
 ns = 'http://avaa.tdata.fi/web/smart/smear/'
-tz = timezone('Europe/Helsinki')
-beginning_datetime = tz.localize(datetime.strptime('{} {}'.format(day, beginning), '%Y-%m-%d %H:%M'))
-end_datetime = tz.localize(datetime.strptime('{} {}'.format(day, end), '%Y-%m-%d %H:%M'))
+tz_helsinki = timezone('Europe/Helsinki')
+beginning_datetime = tz_helsinki.localize(datetime.strptime('{} {}'.format(day, beginning), '%Y-%m-%d %H:%M'))
+end_datetime = tz_helsinki.localize(datetime.strptime('{} {}'.format(day, end), '%Y-%m-%d %H:%M'))
 beginning_isoformat = beginning_datetime.isoformat()
 end_isoformat = end_datetime.isoformat()
 time_isoformat = '{}/{}'.format(beginning_isoformat, end_isoformat)
+datetime_now = datetime.utcnow().replace(tzinfo=tz.tzutc()).astimezone(tz.tzlocal())
 
 event_uri = URIRef('{}{}'.format(ns, md5('{}{}'.format(day, place).encode()).hexdigest()))
 geometry_uri = URIRef('{}{}'.format(ns, md5(point.encode()).hexdigest()))
@@ -89,6 +94,8 @@ beginning_uri = URIRef('{}{}'.format(ns, md5(beginning_isoformat.encode()).hexdi
 end_uri = URIRef('{}{}'.format(ns, md5(end_isoformat.encode()).hexdigest()))
 place_uri = configuration[place]['identifier']
 classification_uri = configuration[classification]['identifier']
+image_uri = URIRef(image)
+data_visualization_uri = URIRef('{}{}'.format(ns, md5('{}{}'.format(datetime_now, 'data_visualization').encode()).hexdigest()))
 
 LODE = dict()
 DUL = dict()
@@ -98,6 +105,8 @@ SMEAR = dict()
 SimpleFeatures = dict()
 GeoSPARQL = dict()
 Time = dict()
+PROV = dict()
+OBO = dict()
 
 LODE['Event'] = URIRef('http://linkedevents.org/ontology/Event')
 LODE['atPlace'] = URIRef('http://linkedevents.org/ontology/atPlace')
@@ -124,6 +133,15 @@ Time['hasTime'] = URIRef('http://www.w3.org/2006/time#hasTime')
 Time['hasBeginning'] = URIRef('http://www.w3.org/2006/time#hasBeginning')
 Time['hasEnd'] = URIRef('http://www.w3.org/2006/time#hasEnd')
 Time['inXSDDateTime'] = URIRef('http://www.w3.org/2006/time#inXSDDateTime')
+PROV['Entity'] = URIRef('http://www.w3.org/ns/prov#Entity')
+PROV['Activity'] = URIRef('http://www.w3.org/ns/prov#Activity')
+PROV['Agent'] = URIRef('http://www.w3.org/ns/prov#Agent')
+PROV['wasDerivedFrom'] = URIRef('http://www.w3.org/ns/prov#wasDerivedFrom')
+PROV['wasGeneratedBy'] = URIRef('http://www.w3.org/ns/prov#wasGeneratedBy')
+PROV['used'] = URIRef('http://www.w3.org/ns/prov#used')
+PROV['startedAtTime'] = URIRef('http://www.w3.org/ns/prov#startedAtTime')
+PROV['endedAtTime'] = URIRef('http://www.w3.org/ns/prov#endedAtTime')
+OBO['data visualization'] = URIRef('http://purl.obolibrary.org/obo/OBI_0200111')
 
 g = Graph()
 
@@ -135,6 +153,9 @@ g.bind('smear', 'http://avaa.tdata.fi/web/smart/smear/')
 g.bind('sf', 'http://www.opengis.net/ont/sf#')
 g.bind('geosparql', 'http://www.opengis.net/ont/geosparql#')
 g.bind('time', 'http://www.w3.org/2006/time#')
+g.bind('prov', 'http://www.w3.org/ns/prov#')
+
+g.add((OBO['data visualization'], RDFS.label, Literal('data visualization')))
 
 g.add((event_uri, RDF.type, LODE['Event']))
 g.add((event_uri, LODE['atPlace'], place_uri))
@@ -162,12 +183,22 @@ g.add((beginning_uri, Time['inXSDDateTime'], Literal(beginning_isoformat, dataty
 g.add((end_uri, RDF.type, Time['Instant']))
 g.add((end_uri, Time['inXSDDateTime'], Literal(end_isoformat, datatype=XSD.dateTime)))
 
+g.add((image_uri, RDF.type, PROV['Entity']))
+g.add((event_uri, RDF.type, PROV['Entity']))
+g.add((data_visualization_uri, RDF.type, PROV['Activity']))
+g.add((data_visualization_uri, RDF.type, OBO['data visualization']))
+g.add((event_uri, PROV['wasDerivedFrom'], image_uri))
+g.add((event_uri, PROV['wasGeneratedBy'], data_visualization_uri))
+g.add((data_visualization_uri, PROV['used'], image_uri))
+g.add((data_visualization_uri, PROV['startedAtTime'], Literal(datetime_now.isoformat(), datatype=XSD.dateTime)))
+g.add((data_visualization_uri, PROV['endedAtTime'], Literal(datetime_now.isoformat(), datatype=XSD.dateTime)))
+
 headers = {'Content-Type':'application/x-turtle',
            'Accept':'application/xml',
            'gcube-token':globalvariables['gcube_token']}
 
 # First needs to check if the folder exists
-folder = 'EventDescriptions'
+folder = 'Data'
 
 res = requests.get('https://workspace-repository.d4science.org/home-library-webapp/rest/List',
                    params={'absPath':'/Home/{}/{}'.format(globalvariables['gcube_username'], folder),
@@ -177,13 +208,13 @@ res = requests.get('https://workspace-repository.d4science.org/home-library-weba
 if 'ItemNotFoundException' in res.text:
     res = requests.post('https://workspace-repository.d4science.org/home-library-webapp/rest/CreateFolder',
                         params={'name': folder,
-                                'description': 'Contains event descriptions',
+                                'description': 'Data generated in NPFE classification and processing',
                                 'parentPath': '/Home/{}/Workspace'.format(globalvariables['gcube_username'])},
                         headers=headers)
 
 
 res = requests.post('https://workspace-repository.d4science.org/home-library-webapp/rest/Upload',
-                    params={'name':'{}-{}.ttl'.format(configuration[place]['encoded_name'], day),
+                    params={'name':'{}-{}-description.ttl'.format(configuration[place]['encoded_name'], day),
                             'description':'New particle formation event description for {} on {}'.format(place, day),
                             'parentPath':'/Home/{}/Workspace/{}'.format(globalvariables['gcube_username'], folder),
                             'mimetype':'application/x-turtle'},
@@ -210,9 +241,17 @@ headers = {'Content-Type':'application/json',
            'gcube-token':globalvariables['gcube_token']}
 
 res = requests.post('http://catalogue-ws.d4science.org/catalogue-ws/rest/api/resources/create/',
-                    json={'package_id':configuration[place]['package_id'],
-                          'name':'{}-{}'.format(configuration[place]['encoded_name'], day),
+                    json={'package_id':configuration[place]['package_id_descriptions'],
+                          'name':'{}-{}-description'.format(configuration[place]['encoded_name'], day),
                           'url':path,
                           'format':'Turtle',
                           'mimetype':'application/x-turtle'},
+                    headers=headers)
+
+res = requests.post('http://catalogue-ws.d4science.org/catalogue-ws/rest/api/resources/create/',
+                    json={'package_id':configuration[place]['package_id_plots'],
+                          'name':'{}-{}-plot'.format(configuration[place]['encoded_name'], day),
+                          'url':image,
+                          'format':'PNG',
+                          'mimetype':'image/png'},
                     headers=headers)

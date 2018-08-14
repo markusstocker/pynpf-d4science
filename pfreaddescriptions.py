@@ -3,7 +3,7 @@ import requests
 import csv
 from rdflib import Graph
 from rdflib.plugins.sparql.results.csvresults import CSVResultSerializer
-from io import BytesIO, StringIO
+from io import BytesIO
 
 globalvariables = None
 
@@ -16,7 +16,7 @@ headers = {'Content-Type':'application/json',
            'gcube-token':globalvariables['gcube_token']}
 
 res = requests.get('http://catalogue-ws.d4science.org/catalogue-ws/rest/api/items/show',
-                   params={'id':'new_particle_formation_events_at_hyytiaelae'},
+                   params={'id':'npfe_descriptions_at_hyytiaelae'},
                    headers=headers)
 json = res.json()
 

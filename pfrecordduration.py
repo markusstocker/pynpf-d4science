@@ -2,7 +2,6 @@
 import sys
 import requests
 import csv
-import json
 from dateutil import tz
 from hashlib import md5
 from datetime import datetime
@@ -13,7 +12,7 @@ value = sys.argv[1]
 event_uris = sys.argv[2]
 
 #value = '1.6'
-#event_uris = 'http://avaa.tdata.fi/web/smart/smear/223b2dabaeee7f3b243842c18ae7bc65,http://avaa.tdata.fi/web/smart/smear/236c7fccf4de7e954abc81ce53b05636,http://avaa.tdata.fi/web/smart/smear/58edbf0e08bfdda8583c3d97a00d806b,http://avaa.tdata.fi/web/smart/smear/2c3514176ca67a77a99292cbb4b6a3ae,http://avaa.tdata.fi/web/smart/smear/a34f50fe49a4a0ab01ab0518a21d690f'
+#event_uris = 'http://avaa.tdata.fi/web/smart/smear/2c3514176ca67a77a99292cbb4b6a3ae'
 
 event_uris = event_uris.split(',')
 
@@ -106,7 +105,7 @@ headers = {'Content-Type':'application/x-turtle',
            'gcube-token':globalvariables['gcube_token']}
 
 # First needs to check if the folder exists
-folder = 'EventDurations'
+folder = 'Data'
 
 res = requests.get('https://workspace-repository.d4science.org/home-library-webapp/rest/List',
                    params={'absPath':'/Home/{}/{}'.format(globalvariables['gcube_username'], folder),
@@ -116,14 +115,14 @@ res = requests.get('https://workspace-repository.d4science.org/home-library-weba
 if 'ItemNotFoundException' in res.text:
     res = requests.post('https://workspace-repository.d4science.org/home-library-webapp/rest/CreateFolder',
                         params={'name': folder,
-                                'description': 'Contains event descriptions',
+                                'description': 'Data generated in NPFE classification and processing',
                                 'parentPath': '/Home/{}/Workspace'.format(globalvariables['gcube_username'])},
                         headers=headers)
 
 
 res = requests.post('https://workspace-repository.d4science.org/home-library-webapp/rest/Upload',
-                    params={'name':'{}-event-duration.ttl'.format(datetime_now.strftime('%Y-%m-%dT%H%M%S')),
-                            'description':'Average event duration computed on {}'.format(datetime_now.strftime('%Y-%m-%d %H:%M:%S')),
+                    params={'name':'{}-npfe-mean-duration.ttl'.format(datetime_now.strftime('%Y-%m-%dT%H%M%S')),
+                            'description':'Mean event duration computed on {}'.format(datetime_now.strftime('%Y-%m-%d %H:%M:%S')),
                             'parentPath':'/Home/{}/Workspace/{}'.format(globalvariables['gcube_username'], folder),
                             'mimetype':'application/x-turtle'},
                     data=g.serialize(format='turtle'),
@@ -149,8 +148,8 @@ headers = {'Content-Type':'application/json',
            'gcube-token':globalvariables['gcube_token']}
 
 res = requests.post('http://catalogue-ws.d4science.org/catalogue-ws/rest/api/resources/create/',
-                    json={'package_id':'computed_event_durations',
-                          'name':'{}-event-duration.ttl'.format(datetime_now.strftime('%Y-%m-%dT%H%M%S')),
+                    json={'package_id':'npfe_mean_durations',
+                          'name':'{}-npfe-mean-duration'.format(datetime_now.strftime('%Y-%m-%dT%H%M%S')),
                           'url':path,
                           'format':'Turtle',
                           'mimetype':'application/x-turtle'},
