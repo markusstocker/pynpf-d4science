@@ -2,6 +2,8 @@
 import sys
 import requests
 import csv
+from PIL import Image
+from StringIO import StringIO
 from dateutil import tz
 from hashlib import md5
 from pytz import timezone
@@ -63,12 +65,12 @@ end = sys.argv[4]
 classification = sys.argv[5]
 image = sys.argv[6]
 
-#day = '2013-04-04'
+#day = '2018-04-04'
 #place = 'Hyytiaelae'
 #beginning = '12:00'
 #end = '13:30'
 #classification = 'Class Ia'
-#image = 'http://data.d4science.org/dFc2eXkwaXBZTGRCSlRFNlg1YmNWbXhxRW9xY09MMU1HbWJQNStIS0N6Yz0-VLT'
+#image = 'http://data.d4science.org/SE1HYU1EdzNkbU1LUFBnWHQ2M2NPb0h6Y2lidlVmNTBHbWJQNStIS0N6Yz0-VLT'
 
 globalvariables = None
 
@@ -248,10 +250,36 @@ res = requests.post('http://catalogue-ws.d4science.org/catalogue-ws/rest/api/res
                           'mimetype':'application/x-turtle'},
                     headers=headers)
 
+res = requests.get(image)
+img = StringIO(res.content)
+
+res = requests.post('https://workspace-repository.d4science.org/home-library-webapp/rest/Upload',
+                    params={'name':'{}-{}-plot.png'.format(configuration[place]['encoded_name'], day),
+                            'description':'New particle formation event plot for {} on {}'.format(place, day),
+                            'parentPath':'/Home/{}/Workspace/{}'.format(globalvariables['gcube_username'], folder),
+                            'mimetype':'image/png'},
+                    data=img,
+                    headers=headers)
+
+path = res.text
+
+path = path.replace('<string>','')
+path = path.replace('</string>','')
+
+res = requests.get('https://workspace-repository.d4science.org/home-library-webapp/rest/GetPublicLink',
+                   params={'absPath':'/Home/{}{}'.format(globalvariables['gcube_username'], path),
+                           'secureUrl':'true'},
+                   headers=headers)
+
+path = res.text
+
+path = path.replace('<string>','')
+path = path.replace('</string>','')
+
 res = requests.post('http://catalogue-ws.d4science.org/catalogue-ws/rest/api/resources/create/',
                     json={'package_id':configuration[place]['package_id_plots'],
                           'name':'{}-{}-plot'.format(configuration[place]['encoded_name'], day),
-                          'url':image,
+                          'url':path,
                           'format':'PNG',
                           'mimetype':'image/png'},
                     headers=headers)
